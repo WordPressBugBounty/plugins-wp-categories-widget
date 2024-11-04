@@ -2,9 +2,9 @@
 Contributors: wpexpertsin, india-web-developer
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZEMSYQUZRUK6A
 Tags: Category Widget, Posts Widget, Taxonomy Widget, Custom Widget, product categories widget
-Requires at least: 5.6
-Tested up to: 6.4.2
-Stable tag: 2.4
+Requires at least: 6.0
+Tested up to: 6.6.2
+Stable tag: 2.5
 Requires PHP: 7.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -96,6 +96,10 @@ Installing the plugin:
  
 == Changelog ==
 
+= 2.5 =
+ * Tested with wordpress version 6.6.2
+ * Added posts tags option for taxonomy
+ 
 = 2.4 =
  * Tested with wordpress version 6.4.2
  * Added dropdown display option

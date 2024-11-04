@@ -6,7 +6,7 @@ Description: A simple plugin to display categories as list under website widget 
 Author: WP-EXPERTS.IN TEAM
 Author URI: https://wp-experts.in
 Plugin URI: https://www.wp-experts.in/products/wp-categories-widget-addon/
-Version: 2.4
+Version: 2.5
 */
 
 /*  Copyright 2018-24  wp-categories-widget  (email : raghunath.0087@gmail.com)
@@ -131,7 +131,7 @@ class WpCategoriesWidget extends WP_Widget {
 		$pad_counts   = false;
 		$hierarchical = true;
 		if ( ! empty( $instance['wcw_title'] ) && !$instance['wcw_hide_title']) {
-			$title = '<h2 class="widget-title">' . __( $instance['wcw_title'], 'wp-experts.in' ) . '</h2>';
+			$title = '<h3 class="widget-title">' . __( $instance['wcw_title'], 'wp-experts.in' ) . '</h3>';
 		}
 		
 		$widgetstyle 	= !empty($instance['wcw_style']) ? $instance['wcw_style'] : 'list';
@@ -173,6 +173,10 @@ class WpCategoriesWidget extends WP_Widget {
 				}else{
 				    
 				    $parent_terms = get_terms($queryargs); 
+					
+					 // Get the current term ID if on a taxonomy archive page
+    $current_term_id = (is_tax() || is_category() || is_tag()) ? get_queried_object_id() : null;
+    
 if ( $parent_terms ) {
    echo $title; 
 	
@@ -180,15 +184,17 @@ if ( $parent_terms ) {
 	
 	if( $parent_terms ) {
 		
+		echo '<option>Select '.$title.'</option>';
+		
 		foreach ( $parent_terms as $pterm ) {
 			$queryargs['parent'] = $pterm->term_id;
 			$terms = get_terms($queryargs);
-			echo '<option class="cat-item '.($terms && !$depth ? ' cat-have-child ': '').$parentcatclass.'" id="cat-item-'.$pterm->term_id.'" value="'.get_term_link( $pterm ).'" '.selected($currentterm,$pterm->term_id) .'>'. $pterm->name.'</option>';
+			echo '<option class="cat-item '.($terms && !$depth ? ' cat-have-child ': '').$parentcatclass.'" id="cat-item-'.$pterm->term_id.'" value="'.get_term_link( $pterm ).'" '.selected($current_term_id,$pterm->term_id) .'>'. $pterm->name.'</option>';
 						
 			//Get the Child terms
 			if($terms && !$depth) {
 				foreach ( $terms as $term ) {
-						echo '<option class="child-cat-item" id="term-'.$term->term_id.'" value="' . get_term_link( $term ) . '" '.selected($currentterm,$pterm->term_id) .'>' . $term->name.'</option>';
+						echo '<option class="child-cat-item" id="term-'.$term->term_id.'" value="' . get_term_link( $term ) . '" '.selected($current_term_id,$pterm->term_id) .'>' . $term->name.'</option>';
 						
 					}
 				}
@@ -246,7 +252,8 @@ if ( $parent_terms ) {
 					$output = 'names'; // or objects
 					$operator = 'and'; // 'and' or 'or'
 					$taxonomies = get_taxonomies( $args, $output, $operator ); 
-					array_push($taxonomies,'category');
+					array_push($taxonomies,'category'); // add category
+					array_push($taxonomies,'post_tag'); // add tags
 					if ( $taxonomies ) {
 					foreach ( $taxonomies as $taxonomy ) {
 
@@ -399,7 +406,7 @@ jQuery("#<?php echo esc_attr( $this->get_field_id( 'wcw_taxonomy_type' ) ); ?>")
 	
 	/** plugin CSS **/
 	public function wcw_style_func_css() {
-		$inlinecss =' .widget_wpcategorieswidget ul.children{display:none;} .widget_wp_categories_widget{background:#fff; position:relative;}.widget_wp_categories_widget h2,.widget_wpcategorieswidget h2{color:#4a5f6d;font-size:20px;font-weight:400;margin:0 0 25px;line-height:24px;text-transform:uppercase}.widget_wp_categories_widget ul li,.widget_wpcategorieswidget ul li{font-size: 16px; margin: 0px; border-bottom: 1px dashed #f0f0f0; position: relative; list-style-type: none; line-height: 35px;}.widget_wp_categories_widget ul li:last-child,.widget_wpcategorieswidget ul li:last-child{border:none;}.widget_wp_categories_widget ul li a,.widget_wpcategorieswidget ul li a{display:inline-block;color:#007acc;transition:all .5s ease;-webkit-transition:all .5s ease;-ms-transition:all .5s ease;-moz-transition:all .5s ease;text-decoration:none;}.widget_wp_categories_widget ul li a:hover,.widget_wp_categories_widget ul li.active-cat a,.widget_wp_categories_widget ul li.active-cat span.post-count,.widget_wpcategorieswidget ul li a:hover,.widget_wpcategorieswidget ul li.active-cat a,.widget_wpcategorieswidget ul li.active-cat span.post-count{color:#ee546c}.widget_wp_categories_widget ul li span.post-count,.widget_wpcategorieswidget ul li span.post-count{height: 30px; min-width: 35px; text-align: center; background: #fff; color: #605f5f; border-radius: 5px; box-shadow: inset 2px 1px 3px rgba(0, 122, 204,.1); top: 0px; float: right; margin-top: 2px;}li.cat-item.cat-have-child > span.post-count{float:inherit;}li.cat-item.cat-item-7.cat-have-child { background: #f8f9fa; }li.cat-item.cat-have-child > span.post-count:before { content: "("; }li.cat-item.cat-have-child > span.post-count:after { content: ")"; }.cat-have-child.open-m-menu ul.children li { border-top: 1px solid #d8d8d8;border-bottom:none;}li.cat-item.cat-have-child:after{ position: absolute; right: 8px; top: 8px; background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABmJLR0QA/wD/AP+gvaeTAAAAoklEQVQ4je3PzQpBURSG4WfknztxGS6BKOIaDQwkSXJTnI7J2rXbhSND3lqTtb/19m3+NGWANVof3LTiZpAWXVxQY4t2A0k7snXcdmGMKpY1dui8kHQik/JVOMAC9+zxlFfO6GFfSDZlaI5bFjpjWEgOhWT9rHYpu2CEPo7Z/v5KklgW37zG5JLlO0liVjTLJaumkmeyj5qUTEP2lSQxiflVHtR5PTMAQTkfAAAAAElFTkSuQmCC); content: ""; width: 18px; height: 18px;transform: rotate(270deg);}ul.children li.cat-item.cat-have-child:after{content:"";background-image: none;}.cat-have-child ul.children {display: none; z-index: 9; width: auto; position: relative; margin: 0px; padding: 0px; margin-top: 0px; padding-top: 10px; padding-bottom: 10px; list-style: none; text-align: left; background:  #f8f9fa; padding-left: 5px;}.widget_wp_categories_widget ul li ul.children li,.widget_wpcategorieswidget ul li ul.children li { border-bottom: 1px solid #fff; padding-right: 5px; }.cat-have-child.open-m-menu ul.children{display:block;}li.cat-item.cat-have-child.open-m-menu:after{transform: rotate(0deg);}.widget_wp_categories_widget > li.product_cat,.widget_wpcategorieswidget > li.product_cat {list-style: none;}.widget_wp_categories_widget > ul,.widget_wpcategorieswidget > ul {padding: 0px;}.widget_wp_categories_widget > ul li ul ,.widget_wpcategorieswidget > ul li ul {padding-left: 15px;}';
+		$inlinecss =' .widget_wpcategorieswidget ul.children{display:none;} .widget_wp_categories_widget{background:#fff; position:relative;}.widget_wp_categories_widget h2,.widget_wpcategorieswidget h2{color:#4a5f6d;font-size:20px;font-weight:400;margin:0 0 25px;line-height:24px;text-transform:uppercase}.widget_wp_categories_widget ul li,.widget_wpcategorieswidget ul li{font-size: 16px; margin: 0px; border-bottom: 1px dashed #f0f0f0; position: relative; list-style-type: none; line-height: 35px;}.widget_wp_categories_widget ul li:last-child,.widget_wpcategorieswidget ul li:last-child{border:none;}.widget_wp_categories_widget ul li a,.widget_wpcategorieswidget ul li a{display:inline-block;color:#007acc;transition:all .5s ease;-webkit-transition:all .5s ease;-ms-transition:all .5s ease;-moz-transition:all .5s ease;text-decoration:none;}.widget_wp_categories_widget ul li a:hover,.widget_wp_categories_widget ul li.active-cat a,.widget_wp_categories_widget ul li.active-cat span.post-count,.widget_wpcategorieswidget ul li a:hover,.widget_wpcategorieswidget ul li.active-cat a,.widget_wpcategorieswidget ul li.active-cat span.post-count{color:#ee546c}.widget_wp_categories_widget ul li span.post-count,.widget_wpcategorieswidget ul li span.post-count{height: 30px; min-width: 35px; text-align: center; background: #fff; color: #605f5f; border-radius: 5px; box-shadow: inset 2px 1px 3px rgba(0, 122, 204,.1); top: 0px; float: right; margin-top: 2px;}li.cat-item.cat-have-child > span.post-count{float:inherit;}li.cat-item.cat-item-7.cat-have-child { background: #f8f9fa; }li.cat-item.cat-have-child > span.post-count:before { content: "("; }li.cat-item.cat-have-child > span.post-count:after { content: ")"; }.cat-have-child.open-m-menu ul.children li { border-top: 1px solid #d8d8d8;border-bottom:none;}li.cat-item.cat-have-child:after{ position: absolute; right: 8px; top: 8px; background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABmJLR0QA/wD/AP+gvaeTAAAAoklEQVQ4je3PzQpBURSG4WfknztxGS6BKOIaDQwkSXJTnI7J2rXbhSND3lqTtb/19m3+NGWANVof3LTiZpAWXVxQY4t2A0k7snXcdmGMKpY1dui8kHQik/JVOMAC9+zxlFfO6GFfSDZlaI5bFjpjWEgOhWT9rHYpu2CEPo7Z/v5KklgW37zG5JLlO0liVjTLJaumkmeyj5qUTEP2lSQxiflVHtR5PTMAQTkfAAAAAElFTkSuQmCC); content: ""; width: 18px; height: 18px;transform: rotate(270deg);}ul.children li.cat-item.cat-have-child:after{content:"";background-image: none;}.cat-have-child ul.children {display: none; z-index: 9; width: auto; position: relative; margin: 0px; padding: 0px; margin-top: 0px; padding-top: 10px; padding-bottom: 10px; list-style: none; text-align: left; background:  #f8f9fa; padding-left: 5px;}.widget_wp_categories_widget ul li ul.children li,.widget_wpcategorieswidget ul li ul.children li { border-bottom: 1px solid #fff; padding-right: 5px; }.cat-have-child.open-m-menu ul.children{display:block;}li.cat-item.cat-have-child.open-m-menu:after{transform: rotate(0deg);}.widget_wp_categories_widget > li.product_cat,.widget_wpcategorieswidget > li.product_cat {list-style: none;}.widget_wp_categories_widget > ul,.widget_wpcategorieswidget > ul {padding: 0px;}.widget_wp_categories_widget > ul li ul ,.widget_wpcategorieswidget > ul li ul {padding-left: 15px;} .wcwpro-list{padding: 0 15px;}';
 		
 		
 		 wp_register_style( 'wcw-inlinecss', false );
@@ -526,8 +533,7 @@ if(!class_exists('WpcEditor'))
     } // END class WpcEditor
 } // END if(!class_exists('WpcEditor'))
 
-if( class_exists('WpcEditor') )
-{
+if( class_exists('WpcEditor') ) {
     if( is_admin() ) {
     // instantiate the plugin class
     $wcw_plugin_template = new WpcEditor();
