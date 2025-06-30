@@ -184,7 +184,7 @@ if ( $parent_terms ) {
 	
 	if( $parent_terms ) {
 		
-		echo '<option>Select '.$title.'</option>';
+		echo '<option>Select '.$instance['wcw_title'].'</option>';
 		
 		foreach ( $parent_terms as $pterm ) {
 			$queryargs['parent'] = $pterm->term_id;
