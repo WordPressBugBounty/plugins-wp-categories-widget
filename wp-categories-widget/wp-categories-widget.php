@@ -6,7 +6,9 @@ Description: A simple plugin to display categories as list under website widget 
 Author: WP-EXPERTS.IN TEAM
 Author URI: https://wp-experts.in
 Plugin URI: https://www.wp-experts.in/products/wp-categories-widget-addon/
-Version: 2.5
+Version: 2.6
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 */
 
 /*  Copyright 2018-24  wp-categories-widget  (email : raghunath.0087@gmail.com)
@@ -33,13 +35,13 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 class WpCategoriesWidget extends WP_Widget {
 
 	/**
-	 * Register widget with WordPress.
+	 * Register widget with WP.
 	 */
 	function __construct() {
 		parent::__construct(
 			'wpcategorieswidget', // Base ID
-			__( 'WP Categories Widget', 'wp-experts' ), // Name
-			array( 'description' => esc_html__( 'Display categories list of all taxonomy post type - by WP-Experts.In Team', 'wp-experts' ), ) // Args
+			__( 'WP Categories Widget', 'wp-categories-widget' ), // Name
+			array( 'description' => esc_html__( 'Display categories list of all taxonomy post type - by WP-Experts.In Team', 'wp-categories-widget' ), ) // Args
 		);
 		
 		add_action('wp_enqueue_scripts',array($this,'wcw_style_func_css'));
@@ -63,9 +65,10 @@ class WpCategoriesWidget extends WP_Widget {
         }
         
         
-    	$taxonomy = isset($_POST['wcwtaxo']) ? sanitize_text_field($_POST['wcwtaxo']) : '';
-    	$cbid     = isset($_POST['cbid']) ? sanitize_text_field($_POST['cbid']) : '';
-    	$cbname   = isset($_POST['cbname']) ? sanitize_text_field($_POST['cbname']) : '';
+$taxonomy = isset($_POST['wcwtaxo']) ? sanitize_text_field( wp_unslash( $_POST['wcwtaxo'] ) ) : '';
+$cbid     = isset($_POST['cbid']) ? intval( wp_unslash( $_POST['cbid'] ) ) : '';
+$cbname   = isset($_POST['cbname']) ? sanitize_text_field( wp_unslash( $_POST['cbname'] ) ) : '';
+
 		
 		
     	if($taxonomy=='') wp_die("Direct access denied") ;
@@ -107,7 +110,7 @@ class WpCategoriesWidget extends WP_Widget {
     					}
     				    	
     					}
-    				echo $html;
+    				echo wp_kses_post($html);
     	wp_die();
     }
 
@@ -120,7 +123,7 @@ class WpCategoriesWidget extends WP_Widget {
 	 * @param array $instance Saved values from database.
 	 */
 	public function widget( $args, $instance ) {
-		echo isset($args['before_widget']) ? $args['before_widget'] :'';
+        echo isset($args['before_widget']) ? wp_kses_post($args['before_widget']) : '';
 		//init categories widget
 		$title = '';
 		$orderby      = !empty($instance['wcw_orderby']) ? $instance['wcw_orderby'] : 'name'; 
@@ -130,9 +133,10 @@ class WpCategoriesWidget extends WP_Widget {
 		$show_count   = !empty( $instance['wcw_hide_count']) ? false : true;
 		$pad_counts   = false;
 		$hierarchical = true;
-		if ( ! empty( $instance['wcw_title'] ) && !$instance['wcw_hide_title']) {
-			$title = '<h3 class="widget-title">' . __( $instance['wcw_title'], 'wp-experts.in' ) . '</h3>';
+		if ( ! empty( $instance['wcw_title'] ) && ! $instance['wcw_hide_title'] ) {
+			$title = '<h3 class="widget-title">' . esc_html( $instance['wcw_title'] ) . '</h3>';
 		}
+
 		
 		$widgetstyle 	= !empty($instance['wcw_style']) ? $instance['wcw_style'] : 'list';
 
@@ -168,7 +172,11 @@ class WpCategoriesWidget extends WP_Widget {
 				$cat_html = preg_replace( '~\((\d+)\)(?=\s*+<)~', '<span class="post-count">$1</span>', $categories );
 				
 				if ( $categories ) {
-					printf( '<ul class="%s">%s</ul>', $args['widget_id'],$cat_html );
+						printf(
+							'<ul id="%s">%s</ul>',
+							esc_attr( $args['widget_id'] ),
+							wp_kses_post( $cat_html )
+						);
 				 }
 				}else{
 				    
@@ -178,36 +186,46 @@ class WpCategoriesWidget extends WP_Widget {
     $current_term_id = (is_tax() || is_category() || is_tag()) ? get_queried_object_id() : null;
     
 if ( $parent_terms ) {
-   echo $title; 
+   echo wp_kses_post($title); 
 	
-	echo '<select class="wcwpro-list" id="'.$args['widget_id'].'" onchange="this.options[this.selectedIndex].value && (window.location = this.options[this.selectedIndex].value);">';
+$widget_id = isset( $args['widget_id'] ) ? esc_attr( $args['widget_id'] ) : 'wcwpro-default-00';
+
+echo '<select class="wcwpro-list" id="' . esc_attr($widget_id) . '" onchange="this.options[this.selectedIndex].value && (window.location = this.options[this.selectedIndex].value);">';
+
 	
 	if( $parent_terms ) {
 		
-		echo '<option>Select '.$instance['wcw_title'].'</option>';
+echo '<option>' . esc_html__( 'Select ', 'wp-categories-widget' ) . esc_html( $instance['wcw_title'] ) . '</option>';
 		
 		foreach ( $parent_terms as $pterm ) {
 			$queryargs['parent'] = $pterm->term_id;
 			$terms = get_terms($queryargs);
-			echo '<option class="cat-item '.($terms && !$depth ? ' cat-have-child ': '').$parentcatclass.'" id="cat-item-'.$pterm->term_id.'" value="'.get_term_link( $pterm ).'" '.selected($current_term_id,$pterm->term_id) .'>'. $pterm->name.'</option>';
+			echo '<option class="cat-item ' . esc_attr( ($terms && !$depth ? ' cat-have-child ' : '') . $parentcatclass ) . '" 
+    id="cat-item-' . esc_attr( $pterm->term_id ) . '" 
+    value="' . esc_url( get_term_link( $pterm ) ) . '" ' 
+    . selected( $current_term_id, $pterm->term_id, false ) . '>'
+    . esc_html( $pterm->name ) . 
+'</option>';
+
 						
 			//Get the Child terms
 			if($terms && !$depth) {
 				foreach ( $terms as $term ) {
-						echo '<option class="child-cat-item" id="term-'.$term->term_id.'" value="' . get_term_link( $term ) . '" '.selected($current_term_id,$pterm->term_id) .'>' . $term->name.'</option>';
+						echo '<option class="child-cat-item" id="term-' . esc_attr( $term->term_id ) . '" value="' . esc_url( get_term_link( $term ) ) . '" ' . selected( $current_term_id, $pterm->term_id, false ) . '>' . esc_html( $term->name ) . '</option>';
+
 						
 					}
 				}
 			}
 
 	}
-			echo '</select>';
+echo esc_html( '</select>' );
 
 }
 				}
 			
 			}	
-		echo isset($args['after_widget']) ? $args['after_widget'] :'';
+echo isset($args['after_widget']) ? wp_kses_post( $args['after_widget'] ) : '';
 	}
 
 	/**
@@ -218,130 +236,92 @@ if ( $parent_terms ) {
 	 * @param array $instance Previously saved values from database.
 	 */
 	public function form( $instance ) {
-		$wcw_title 					= ! empty( $instance['wcw_title'] ) ? $instance['wcw_title'] : esc_html__( 'WP Categories', 'wp-experts.in' );
-		$wcw_hide_title 			= ! empty( $instance['wcw_hide_title'] ) ? $instance['wcw_hide_title'] : esc_html__( '', 'wp-experts.in' );
-		$wcw_show_empty 		 	= ! empty( $instance['wcw_show_empty'] ) ? $instance['wcw_show_empty'] : esc_html__( '', 'wp-experts.in' );
-		$wcw_hide_child 		    = ! empty( $instance['wcw_hide_child'] ) ? $instance['wcw_hide_child'] : esc_html__( '', 'wp-experts.in' );
-		$wcw_taxonomy_type 			= ! empty( $instance['wcw_orderby'] ) ? $instance['wcw_orderby'] : esc_html__( 'order by', 'wp-experts.in' );
-		$wcw_taxonomy_type 			= ! empty( $instance['wcw_order'] ) ? $instance['wcw_order'] : esc_html__( 'order', 'wp-experts.in' );
-		$wcw_taxonomy_type 			= ! empty( $instance['wcw_taxonomy_type'] ) ? $instance['wcw_taxonomy_type'] : esc_html__( 'category', 'wp-experts.in' );
-		$wcw_selected_categories 	= (! empty( $instance['wcw_selected_categories'] ) && ! empty( $instance['wcw_action_on_cat'] ) ) ? $instance['wcw_selected_categories'] : esc_html__( '', 'wp-experts.in' );
-		$wcw_action_on_cat 			= ! empty( $instance['wcw_action_on_cat'] ) ? $instance['wcw_action_on_cat'] : esc_html__( '', 'wp-experts.in' );
-		$wcw_hide_count 			= ! empty( $instance['wcw_hide_count'] ) ? $instance['wcw_hide_count'] : esc_html__( '', 'wp-experts.in' );
-		$wcw_style 		 	        = ! empty( $instance['wcw_style'] ) ? $instance['wcw_style'] : esc_html__( '', 'wp-experts.in' );
+		$wcw_title                = ! empty( $instance['wcw_title'] ) ? $instance['wcw_title'] : esc_html__( 'WP Categories', 'wp-categories-widget' );
+$wcw_hide_title           = ! empty( $instance['wcw_hide_title'] ) ? $instance['wcw_hide_title'] : '';
+$wcw_show_empty           = ! empty( $instance['wcw_show_empty'] ) ? $instance['wcw_show_empty'] : '';
+$wcw_hide_child           = ! empty( $instance['wcw_hide_child'] ) ? $instance['wcw_hide_child'] : '';
+$wcw_taxonomy_type        = ! empty( $instance['wcw_taxonomy_type'] ) ? $instance['wcw_taxonomy_type'] : esc_html__( 'category', 'wp-categories-widget' );
+$wcw_orderby              = ! empty( $instance['wcw_orderby'] ) ? $instance['wcw_orderby'] : esc_html__( 'order by', 'wp-categories-widget' );
+$wcw_order                = ! empty( $instance['wcw_order'] ) ? $instance['wcw_order'] : esc_html__( 'order', 'wp-categories-widget' );
+$wcw_selected_categories  = ( ! empty( $instance['wcw_selected_categories'] ) && ! empty( $instance['wcw_action_on_cat'] ) ) ? $instance['wcw_selected_categories'] : '';
+$wcw_action_on_cat        = ! empty( $instance['wcw_action_on_cat'] ) ? $instance['wcw_action_on_cat'] : '';
+$wcw_hide_count           = ! empty( $instance['wcw_hide_count'] ) ? $instance['wcw_hide_count'] : '';
+$wcw_style                = ! empty( $instance['wcw_style'] ) ? $instance['wcw_style'] : '';
+
 
 		?>
 		<p>
-		<label for="<?php echo esc_attr( $this->get_field_id( 'wcw_title' ) ); ?>"><?php _e( esc_attr( 'Title:' ) ); ?></label> 
-		<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'wcw_title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'wcw_title' ) ); ?>" type="text" value="<?php echo esc_attr( $wcw_title ); ?>">
-		</p>
-		<p><input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'wcw_hide_title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'wcw_hide_title' ) ); ?>" type="checkbox" value="1" <?php checked( $wcw_hide_title, 1 ); ?>>
-		<label for="<?php echo esc_attr( $this->get_field_id( 'wcw_hide_title' ) ); ?>"><?php _e( esc_attr( 'Hide Title' ) ); ?> </label> 
-		</p>
-		<hr>
-		<div class="taxonomysec">
-		<p>
-		<label for="<?php echo esc_attr( $this->get_field_id( 'wcw_taxonomy_type' ) ); ?>"><?php _e( esc_attr( 'Taxonomy Type:' ) ); ?></label> 
+	<label for="<?php echo esc_attr( $this->get_field_id( 'wcw_title' ) ); ?>"><?php echo esc_html__( 'Title:', 'wp-categories-widget' ); ?></label> 
+	<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'wcw_title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'wcw_title' ) ); ?>" type="text" value="<?php echo esc_attr( $wcw_title ); ?>">
+</p>
+<p>
+	<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'wcw_hide_title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'wcw_hide_title' ) ); ?>" type="checkbox" value="1" <?php checked( $wcw_hide_title, 1 ); ?>>
+	<label for="<?php echo esc_attr( $this->get_field_id( 'wcw_hide_title' ) ); ?>"><?php echo esc_html__( 'Hide Title:', 'wp-categories-widget' ); ?></label> 
+</p>
+<hr>
+<div class="taxonomysec">
+	<p>
+		<label for="<?php echo esc_attr( $this->get_field_id( 'wcw_taxonomy_type' ) ); ?>"><?php echo esc_html__( 'Taxonomy Type:', 'wp-categories-widget' ); ?></label> 
 		<select class="widefat wcwtaxtype" id="<?php echo esc_attr( $this->get_field_id( 'wcw_taxonomy_type' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'wcw_taxonomy_type' ) ); ?>">
-					<?php 
-					$args = array(
-					  'public'   => true,
-					  '_builtin' => false
-					  
-					); 
-					$output = 'names'; // or objects
-					$operator = 'and'; // 'and' or 'or'
-					$taxonomies = get_taxonomies( $args, $output, $operator ); 
-					array_push($taxonomies,'category'); // add category
-					array_push($taxonomies,'post_tag'); // add tags
-					if ( $taxonomies ) {
-					foreach ( $taxonomies as $taxonomy ) {
-
-						echo '<option value="'.$taxonomy.'" '.selected($taxonomy,$wcw_taxonomy_type).'>'.$taxonomy.'</option>';
-					}
-					}
-
-				?>    
+			<?php 
+			$args = array( 'public' => true, '_builtin' => false ); 
+			$taxonomies = get_taxonomies( $args, 'names', 'and' ); 
+			array_push( $taxonomies, 'category', 'post_tag' );
+			foreach ( $taxonomies as $taxonomy ) {
+				printf('<option value="%s" %s>%s</option>', esc_attr( $taxonomy ), selected( $taxonomy, $wcw_taxonomy_type, false ), esc_html( $taxonomy ) );
+			}
+			?>    
 		</select>
-		</p>
-		<div class="wcwmultiselect">
+	</p>
+	<div class="wcwmultiselect">
 		<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'wcw_action_on_cat' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'wcw_action_on_cat' ) ); ?>">
-           <option value="include" <?php selected($wcw_action_on_cat,'include' )?> >Show Only Selected Categories</option>       
-           <option value="exclude" <?php selected($wcw_action_on_cat,'exclude' )?> >Hide Only Selected Categories</option>
-           <option value="" <?php selected($wcw_action_on_cat,'' )?> >Show All Selected Categories</option>
+			<option value="include" <?php selected( $wcw_action_on_cat, 'include' ); ?>><?php echo esc_html__( 'Show Only Selected Categories', 'wp-categories-widget' ); ?></option>
+			<option value="exclude" <?php selected( $wcw_action_on_cat, 'exclude' ); ?>><?php echo esc_html__( 'Hide Only Selected Categories', 'wp-categories-widget' ); ?></option>
+			<option value="" <?php selected( $wcw_action_on_cat, '' ); ?>><?php echo esc_html__( 'Show All Categories', 'wp-categories-widget' ); ?></option>
 		</select>
-			<div class="wcwcheckboxes" id="wcwcb-<?php echo esc_attr( $this->get_field_id( 'wcw_action_on_cat' ) ); ?>">
-			<?php 			
-			$i= $j = $k =0;
-					if($wcw_taxonomy_type){
-					$terms = get_terms( array(
-											'taxonomy' => $wcw_taxonomy_type,
-											'hide_empty' => false,
-											'parent' => 0,
-										) );
-					if ( $terms ) {
-					foreach ( $terms as $term ) {
-						echo '<label for="'.esc_attr( $this->get_field_id( 'wcw_action_on_cat' ) ).'-'.$i.'"><input type="checkbox" id="'.esc_attr( $this->get_field_id( 'wcw_action_on_cat' ) ).'-'.$i.'"  '.checked(true, ($wcw_selected_categories!='' ? in_array($term->term_id,$wcw_selected_categories) : ($wcw_selected_categories=='' ? true : '')), false).' name="'.esc_attr( $this->get_field_name( 'wcw_selected_categories' ) ).'[]" value="'.$term->term_id.'"/>'.$term->name;
-						
-						
-						$childterms = get_terms( array(
-											'taxonomy' => $wcw_taxonomy_type,
-											'hide_empty' => false,
-											'child_of' => $term->term_id,
-										) );
-										
-        					if ( $childterms ) {
-        					foreach ( $childterms as $term ) {
-        						
-        						echo '<label for="'.esc_attr( $this->get_field_id( 'wcw_action_on_cat' ) ).'-'.$j.'" class="child-term"><input type="checkbox" id="'.esc_attr( $this->get_field_id( 'wcw_action_on_cat' ) ).'-'.$j.'"  '.checked(true, ($wcw_selected_categories!='' ? in_array($term->term_id,$wcw_selected_categories) : ($wcw_selected_categories=='' ? true : '')), false).' name="'.esc_attr( $this->get_field_name( 'wcw_selected_categories' ) ).'[]" value="'.$term->term_id.'"/>'.$term->name;
-        						
-        						
-        						
-        							
-        						echo '</label>';
-        						
-        						
-        						
-        						$j++;
-        						
-        					}
-        					}
-						
-						echo '</label>';
-						$i++;
-					}
-				    	
-					}
-				}
+		<div class="wcwcheckboxes" id="wcwcb-<?php echo esc_attr( $this->get_field_id( 'wcw_action_on_cat' ) ); ?>">
+			<?php 
+			$i = $j = 0;
+			if ( $wcw_taxonomy_type ) {
+				$terms = get_terms( array( 'taxonomy' => $wcw_taxonomy_type, 'hide_empty' => false, 'parent' => 0 ) );
+				foreach ( $terms as $term ) {
+					$checked = is_array( $wcw_selected_categories ) && in_array( $term->term_id, $wcw_selected_categories );
+					echo '<label><input type="checkbox" id="' . esc_attr( $this->get_field_id( 'wcw_action_on_cat' ) . '-' . $i ) . '" name="' . esc_attr( $this->get_field_name( 'wcw_selected_categories' ) ) . '[]" value="' . esc_attr( $term->term_id ) . '" ' . checked( $checked, true, false ) . '> ' . esc_html( $term->name ) . '</label>';
 
-				?>   
-			  
-			 
-			</div>
-		  </div>
+					$childterms = get_terms( array( 'taxonomy' => $wcw_taxonomy_type, 'hide_empty' => false, 'child_of' => $term->term_id ) );
+					foreach ( $childterms as $child ) {
+						$checked = is_array( $wcw_selected_categories ) && in_array( $child->term_id, $wcw_selected_categories );
+						echo '<label class="child-term"><input type="checkbox" id="' . esc_attr( $this->get_field_id( 'wcw_action_on_cat' ) . '-' . $j ) . '" name="' . esc_attr( $this->get_field_name( 'wcw_selected_categories' ) ) . '[]" value="' . esc_attr( $child->term_id ) . '" ' . checked( $checked, true, false ) . '> ' . esc_html( $child->name ) . '</label>';
+						$j++;
+					}
+					$i++;
+				}
+			}
+			?>   
 		</div>
-		
-		<p><label for="<?php echo esc_attr( $this->get_field_id( 'wcw_style' ) ); ?>"><?php _e( esc_attr( 'Category Style' ) ); ?>&nbsp;&nbsp;</label> <br>
-		<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'wcw_style' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'wcw_style' ) ); ?>" type="radio" value="list" <?php checked( $wcw_style, 'list' ); ?>> List &nbsp;
-		<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'wcw_style' ) ); ?>-1" name="<?php echo esc_attr( $this->get_field_name( 'wcw_style' ) ); ?>" type="radio" value="dropdown" <?php checked( $wcw_style, 'dropdown' ); ?>> Drop Down
-		</p>
-		<p>
-		<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'wcw_hide_count' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'wcw_hide_count' ) ); ?>" type="checkbox" value="1" <?php checked( $wcw_hide_count, 1 ); ?>>
-		<label for="<?php echo esc_attr( $this->get_field_id( 'wcw_hide_count' ) ); ?>"><?php _e( esc_attr( 'Hide count' ) ); ?> </label> 
-		</p>
-		<p>
-		<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'wcw_hide_child' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'wcw_hide_child' ) ); ?>" type="checkbox" value="1" <?php checked( $wcw_hide_child, 1 ); ?>>
-		<label for="<?php echo esc_attr( $this->get_field_id( 'wcw_hide_child' ) ); ?>"><?php _e( esc_attr( 'Hide Child Categories' ) ); ?> </label> 
-		</p>
-		<p><input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'wcw_show_empty' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'wcw_show_empty' ) ); ?>" type="checkbox" value="1" <?php checked( $wcw_show_empty, 1 ); ?>>
-		<label for="<?php echo esc_attr( $this->get_field_id( 'wcw_show_empty' ) ); ?>"><?php _e( esc_attr( 'Show empty categories' ) ); ?> </label> 
-		</p>
-		<hr>
-		<h3>Need Support?</h3>
-		<p><a href="https://www.wp-experts.in/contact-us/">Contact us</a> | <a href="https://wordpress.org/support/plugin/wp-categories-widget/reviews/?filter=5" target="_blank">I love it :) leave feedback here </a></p>
-		<hr>
-		<h4>Want to improve the speed of your site ?</h4>
-		<p>Our experts will help you to improve the speed of your website. <a href="http://www.wp-experts.in/contact-us/">GET STARTED</a></strong></p>
+	</div>
+</div>
+<p>
+	<label for="<?php echo esc_attr( $this->get_field_id( 'wcw_style' ) ); ?>"><?php echo esc_html__( 'Category Style:', 'wp-categories-widget' ); ?></label><br>
+	<input type="radio" id="<?php echo esc_attr( $this->get_field_id( 'wcw_style' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'wcw_style' ) ); ?>" value="list" <?php checked( $wcw_style, 'list' ); ?>> <?php echo esc_html__( 'List', 'wp-categories-widget' ); ?>
+	<input type="radio" id="<?php echo esc_attr( $this->get_field_id( 'wcw_style' ) ); ?>-1" name="<?php echo esc_attr( $this->get_field_name( 'wcw_style' ) ); ?>" value="dropdown" <?php checked( $wcw_style, 'dropdown' ); ?>> <?php echo esc_html__( 'Dropdown', 'wp-categories-widget' ); ?>
+</p>
+<p>
+	<input type="checkbox" id="<?php echo esc_attr( $this->get_field_id( 'wcw_hide_count' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'wcw_hide_count' ) ); ?>" value="1" <?php checked( $wcw_hide_count, 1 ); ?>>
+	<label for="<?php echo esc_attr( $this->get_field_id( 'wcw_hide_count' ) ); ?>"><?php echo esc_html__( 'Hide count', 'wp-categories-widget' ); ?></label>
+</p>
+<p>
+	<input type="checkbox" id="<?php echo esc_attr( $this->get_field_id( 'wcw_hide_child' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'wcw_hide_child' ) ); ?>" value="1" <?php checked( $wcw_hide_child, 1 ); ?>>
+	<label for="<?php echo esc_attr( $this->get_field_id( 'wcw_hide_child' ) ); ?>"><?php echo esc_html__( 'Hide Child Categories', 'wp-categories-widget' ); ?></label>
+</p>
+<p>
+	<input type="checkbox" id="<?php echo esc_attr( $this->get_field_id( 'wcw_show_empty' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'wcw_show_empty' ) ); ?>" value="1" <?php checked( $wcw_show_empty, 1 ); ?>>
+	<label for="<?php echo esc_attr( $this->get_field_id( 'wcw_show_empty' ) ); ?>"><?php echo esc_html__( 'Show empty categories', 'wp-categories-widget' ); ?></label>
+</p>
+<hr>
+<h3><?php echo esc_html__( 'Need Support?', 'wp-categories-widget' ); ?></h3>
+<p><a href="https://www.wp-experts.in/contact-us/" target="_blank"><?php echo esc_html__( 'Contact us', 'wp-categories-widget' ); ?></a> | <a href="https://wordpress.org/support/plugin/wp-categories-widget/reviews/?filter=5" target="_blank"><?php echo esc_html__( 'I love it :) leave feedback here', 'wp-categories-widget' ); ?></a></p>
+
 		<style>.wcwmultiselect { width: 100%; } .wcwselectBox { position: relative; } .wcwmultiselect select { font-weight: bold; } .wcwoverSelect { position: absolute; left: 0; right: 0; top: 0; bottom: 0; } .wcwcheckboxes { color:#fff; background: rgb(1 8 12 / 62%); margin-top: 0.1rem; border: 1px #7e8993 solid; display: block; border-top: none; padding: 5px; } .wcwcheckboxes label { display: block; padding-bottom: 5px; } .wcwcheckboxes label.child-term { margin-left: 10px; padding-top: 5px; } .wcwcheckboxes label.subchild-term { margin-left: 10px; padding-top: 5px; } </style>
 
 <script type="text/javascript">
@@ -351,7 +331,7 @@ jQuery("#<?php echo esc_attr( $this->get_field_id( 'wcw_taxonomy_type' ) ); ?>")
 	var val = jQuery(this).val();
 	var cbid = "<?php echo esc_attr( $this->get_field_id( 'wcw_action_on_cat' ) );?>";
 	var cbname = "<?php echo esc_attr( $this->get_field_name( 'wcw_selected_categories' ) )?>[]";
-	var ajxurl = "<?php echo home_url('/wp-admin/admin-ajax.php');?>";
+    var ajxurl = "<?php echo esc_url( home_url( '/wp-admin/admin-ajax.php' ) ); ?>";
 	<?php
         //Set Your Nonce
         $ajax_nonce = wp_create_nonce( "wcw-special-string" );
@@ -365,7 +345,7 @@ jQuery("#<?php echo esc_attr( $this->get_field_id( 'wcw_taxonomy_type' ) ); ?>")
 			"action": 'wcw_terms',
 			"wcwtaxo": val,
 			"cbname": cbname,
-			"security": '<?php echo $ajax_nonce; ?>',
+			"security": '<?php echo esc_js($ajax_nonce); ?>',
 			"cbid": cbid
 		},
 		success: function (data) {
@@ -392,15 +372,15 @@ jQuery("#<?php echo esc_attr( $this->get_field_id( 'wcw_taxonomy_type' ) ); ?>")
 	public function update( $new_instance, $old_instance ) {
 		//print_r($new_instance);exit;
 		$instance = array();
-		$instance['wcw_title'] 					= ( ! empty( $new_instance['wcw_title'] ) ) ? strip_tags( $new_instance['wcw_title'] ) : '';
-		$instance['wcw_hide_title'] 			= ( ! empty( $new_instance['wcw_hide_title'] ) ) ? strip_tags( $new_instance['wcw_hide_title'] ) : '';
-		$instance['wcw_show_empty'] 			= ( ! empty( $new_instance['wcw_show_empty'] ) ) ? strip_tags( $new_instance['wcw_show_empty'] ) : '';
-		$instance['wcw_hide_child'] 		    = ( ! empty( $new_instance['wcw_hide_child'] ) ) ? strip_tags( $new_instance['wcw_hide_child'] ) : '';
-		$instance['wcw_taxonomy_type'] 			= ( ! empty( $new_instance['wcw_taxonomy_type'] ) ) ? strip_tags( $new_instance['wcw_taxonomy_type'] ) : '';
+		$instance['wcw_title'] 					= ( ! empty( $new_instance['wcw_title'] ) ) ? wp_strip_all_tags( $new_instance['wcw_title'] ) : '';
+		$instance['wcw_hide_title'] 			= ( ! empty( $new_instance['wcw_hide_title'] ) ) ? wp_strip_all_tags( $new_instance['wcw_hide_title'] ) : '';
+		$instance['wcw_show_empty'] 			= ( ! empty( $new_instance['wcw_show_empty'] ) ) ? wp_strip_all_tags( $new_instance['wcw_show_empty'] ) : '';
+		$instance['wcw_hide_child'] 		    = ( ! empty( $new_instance['wcw_hide_child'] ) ) ? wp_strip_all_tags( $new_instance['wcw_hide_child'] ) : '';
+		$instance['wcw_taxonomy_type'] 			= ( ! empty( $new_instance['wcw_taxonomy_type'] ) ) ? wp_strip_all_tags( $new_instance['wcw_taxonomy_type'] ) : '';
 		$instance['wcw_selected_categories'] 	= ( ! empty( $new_instance['wcw_selected_categories'] ) ) ? $new_instance['wcw_selected_categories'] : '';
 		$instance['wcw_action_on_cat'] 			= ( ! empty( $new_instance['wcw_action_on_cat'] ) ) ? $new_instance['wcw_action_on_cat'] : '';
-		$instance['wcw_hide_count'] 			= ( ! empty( $new_instance['wcw_hide_count'] ) ) ? strip_tags( $new_instance['wcw_hide_count'] ) : '';
-		$instance['wcw_style'] 					= ( ! empty( $new_instance['wcw_style'] ) ) ? strip_tags( $new_instance['wcw_style'] ) : '';
+		$instance['wcw_hide_count'] 			= ( ! empty( $new_instance['wcw_hide_count'] ) ) ? wp_strip_all_tags( $new_instance['wcw_hide_count'] ) : '';
+		$instance['wcw_style'] 					= ( ! empty( $new_instance['wcw_style'] ) ) ? wp_strip_all_tags( $new_instance['wcw_style'] ) : '';
 		return $instance;
 	}
 	
@@ -427,7 +407,7 @@ jQuery("#<?php echo esc_attr( $this->get_field_id( 'wcw_taxonomy_type' ) ); ?>")
 	/** updtate plugins links using hooks**/
 	// Add settings link to plugin list page in admin
 	public function wcw_add_settings_link( $links ) {
-		$settings_link = '<a href="widgets.php">' . __( 'Settings Widget', 'wp-experts' ) . '</a> | <a href="mailto:raghunath.0087@gmail.com">' . __( 'Contact to Author', 'wp-experts' ) . '</a>';
+		$settings_link = '<a href="widgets.php">' . __( 'Settings Widget', 'wp-categories-widget' ) . '</a> | <a href="mailto:raghunath.0087@gmail.com">' . __( 'Contact to Author', 'wp-categories-widget' ) . '</a>';
 		array_unshift( $links, $settings_link );
 		return $links;
 	}
@@ -496,9 +476,22 @@ if(!class_exists('WpcEditor'))
 		 * Initialize some custom settings
 		 */     
 		public function wcw_init_settings() {
-			// register the settings for this plugin
-			register_setting('wcw-group', 'wcw_disable_block_editor');
-		} // END public function init_custom_settings()
+	// register the settings for this plugin with proper sanitization
+	register_setting(
+		'wcw-group',                     // Option group
+		'wcw_disable_block_editor',      // Option name
+		array(
+			'type'              => 'boolean',
+			'sanitize_callback' => array( $this, 'wcw_sanitize_checkbox' ),
+			'default'           => false,
+		)
+	);
+}
+// END public function init_custom_settings()
+public function wcw_sanitize_checkbox( $input ) {
+	return $input == 1 ? 1 : 0;
+}
+
 		/**
 		 * add a menu
 		 */     
@@ -512,7 +505,7 @@ if(!class_exists('WpcEditor'))
 		    
 			if(!current_user_can('manage_options'))
 			{
-				wp_die(__('You do not have sufficient permissions to access this page.'));
+              wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'wp-categories-widget' ) );
 			}
 
 			// Render the settings template

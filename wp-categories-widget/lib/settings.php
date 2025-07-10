@@ -15,7 +15,9 @@
 			</div>
 			<div class="wcw-tab" id="div-wcw-support"> <h2>Support</h2> 
 			<p><a href="mailto:raghunath.0087@gmail.com" target="_blank" class="contact-author">Contact Author</a></p>
-				<p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZEMSYQUZRUK6A" target="_blank" style="font-size: 17px; font-weight: bold;"><img src="https://www.paypal.com/en_US/i/btn/btn_donate_LG.gif" title="Donate for this plugin"></a></p>
+				<p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZEMSYQUZRUK6A" target="_blank" style="font-size: 17px; font-weight: bold;"><img src="<?php echo esc_url( plugins_url( 'images/btn_donate_LG.gif', __FILE__ ) ); ?>" 
+         title="<?php esc_attr_e( 'Donate for this plugin', 'wp-categories-widget' ); ?>" 
+         alt="<?php esc_attr_e( 'Donate', 'wp-categories-widget' ); ?>" /></a></p>
 				
 			</div>
 			<div class="last wcw-tab" id="div-wcw-other">
