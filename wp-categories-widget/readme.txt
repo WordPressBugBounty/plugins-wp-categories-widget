@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: Category Widget, Posts Widget, Taxonomy Widget, Custom Widget, product categories widget
 Requires at least: 6.0
 Tested up to: 6.8
-Stable tag: 2.6
+Stable tag: 2.6.1
 Requires PHP: 7.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html

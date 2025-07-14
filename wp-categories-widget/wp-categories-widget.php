@@ -6,7 +6,7 @@ Description: A simple plugin to display categories as list under website widget 
 Author: WP-EXPERTS.IN TEAM
 Author URI: https://wp-experts.in
 Plugin URI: https://www.wp-experts.in/products/wp-categories-widget-addon/
-Version: 2.6
+Version: 2.6.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 */
@@ -219,7 +219,7 @@ echo '<option>' . esc_html__( 'Select ', 'wp-categories-widget' ) . esc_html( $i
 			}
 
 	}
-echo esc_html( '</select>' );
+echo wp_kses( '</select>', array( 'select' => array()) );
 
 }
 				}
