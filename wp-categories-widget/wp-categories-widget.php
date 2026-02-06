@@ -6,12 +6,12 @@ Description: A simple plugin to display categories as list under website widget 
 Author: WP-EXPERTS.IN TEAM
 Author URI: https://wp-experts.in
 Plugin URI: https://www.wp-experts.in/products/wp-categories-widget-addon/
-Version: 2.6.1
+Version: 2.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 */
 
-/*  Copyright 2018-24  wp-categories-widget  (email : raghunath.0087@gmail.com)
+/*  Copyright 2018-25  wp-categories-widget  (email : raghunath.0087@gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as 
