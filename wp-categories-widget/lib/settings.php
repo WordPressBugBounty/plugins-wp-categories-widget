@@ -1,3 +1,8 @@
+<?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+?>
 <div class="wrap">
     <h2>WP Categories Widget </h2>
 	<div id="wcw-tab-menu"><a id="wcw-general" class="wcw-tab-links active" >General</a> <a  id="wcw-support" class="wcw-tab-links">Support</a> <a  id="wcw-other" class="wcw-tab-links">Other Plugins</a></div>

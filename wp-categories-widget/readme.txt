@@ -3,8 +3,8 @@ Contributors: wpexpertsin, india-web-developer
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZEMSYQUZRUK6A
 Tags: Category Widget, Posts Widget, Taxonomy Widget, Custom Widget, product categories widget
 Requires at least: 6.0
-Tested up to: 6.9
-Stable tag: 2.7
+Tested up to: 6.9.1
+Stable tag: 2.8
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -17,7 +17,7 @@ The "WP Categories Widget" is a simple plugin to display the list of categories 
 
 Note : please don't forget to leave your valuable feedback and suggestions.
 
-  **Send your query to [AUTHOR](mailto:raghunath.0087@gmail.com)**
+  **Send your query to [AUTHOR](mailto:info@wp-experts.in)**
 
 
   Video Tutorial : 
