@@ -5,7 +5,7 @@ Description: A simple plugin to display categories as list under website widget 
 Author: WP-EXPERTS.IN TEAM
 Author URI: https://wp-experts.in
 Plugin URI: https://www.wp-experts.in/products/wp-categories-widget-addon/
-Version: 2.8
+Version: 2.8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 */
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 /**
  * Plugin version
  */
-define( 'WCW_PLUGIN_VERSION', '2.7' );
+define( 'WCW_PLUGIN_VERSION', '2.8' );
 
 /**************************************************************
                 START CLASSS WpCategoriesWidget 
