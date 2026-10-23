@@ -98,6 +98,10 @@ Installing the plugin:
  
 == Changelog ==
 
+= 2.8 =
+ * Tested with wordpress version 6.9
+ * Updated code
+
 = 2.5 =
  * Tested with wordpress version 6.6.2
  * Added posts tags option for taxonomy
